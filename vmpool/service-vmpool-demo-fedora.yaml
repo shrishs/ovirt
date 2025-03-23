@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: service-vmpool-demo-fedora
+  namespace: infra-vms
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+  selector:
+    kubevirt.io/domain: vmpool
+    kubevirt.io/size: small

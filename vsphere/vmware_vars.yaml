@@ -1,0 +1,12 @@
+vcenter_hostname: vcspt00-vc.partner.infra.demo.redhat.com
+datacenter_name: PT00
+cluster_name : vcs-pt-00
+vcenter_username: ocpvirt-df57g-user2@partner
+vcenter_password: eul5Nc8WJl9Q_1
+vm_name: database-user2
+guest_id: centos64Guest
+network_name: VM Network
+vm_netmask:
+vm_gateway:
+
+validate_certs: no

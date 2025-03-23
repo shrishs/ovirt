@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: usecase-image-pipeline
+resources:
+  - namespace.yaml
+  - rolebinding-scc-privileged.yaml
+  - rolebinding-image-builder.yaml
+  - task-download.yaml
+  - task-docker.yaml
+  - pvc.yaml
+  - pipeline-build-vm-image.yaml

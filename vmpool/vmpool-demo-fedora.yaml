@@ -1,0 +1,94 @@
+apiVersion: pool.kubevirt.io/v1alpha1
+kind: VirtualMachinePool
+metadata:
+  name: vmpool-demo-fedora
+  annotations:
+    description: VM example
+  labels:
+    app: vmpool
+    os.template.kubevirt.io/fedora: 'true'
+spec:
+  replicas: 2
+  #running: true
+  selector:
+    matchLabels:
+      kubevirt.io/domain: vmpool
+      kubevirt.io/size: small
+  virtualMachineTemplate:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: small
+        vm.kubevirt.io/os: fedora
+        vm.kubevirt.io/workload: server
+      labels:
+        kubevirt.io/domain: vmpool
+        kubevirt.io/size: small
+    spec:
+      runStrategy: Always
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            kubevirt.io/domain: vmpool
+            kubevirt.io/size: small
+        spec:
+          domain:
+            cpu:
+              cores: 1
+              sockets: 1
+              threads: 1
+            devices:
+              disks:
+                - disk:
+                    bus: virtio
+                  name: rootdisk
+                - disk:
+                    bus: virtio
+                  name: cloudinitdisk
+              interfaces:
+                - masquerade: {}
+                  model: virtio
+                  name: default
+              networkInterfaceMultiqueue: true
+              rng: {}
+            features:
+              acpi: {}
+              smm:
+                enabled: true
+            firmware:
+              bootloader:
+                efi: {}
+            machine:
+              type: q35
+            memory:
+              guest: 2Gi
+          networks:
+            - name: default
+              pod: {}
+          terminationGracePeriodSeconds: 180
+          volumes:
+            - name: rootdisk
+              containerDisk:
+                image: quay.io/containerdisks/fedora
+            - cloudInitNoCloud:
+                userData: |-
+                  #cloud-config
+                  user: fedora
+                  password: fedora
+                  chpasswd: { expire: False }
+                  packages:
+                    - httpd
+                  write_files:
+                    - path: /usr/local/bin/setup-httpd.sh
+                      permissions: '0755'
+                      content: |
+                        #!/bin/bash
+                        echo "<html><body><h1>IP Address: $(hostname -f)</h1></body></html>" > /tmp/index.html
+                        sudo mv /tmp/index.html /var/www/html/index.html
+                        sudo chown -R apache:apache /var/www/html
+                        sudo restorecon -Rv /var/www/html                   
+                        sudo systemctl enable httpd
+                        sudo systemctl start httpd
+                  runcmd:
+                    - sudo /usr/local/bin/setup-httpd.sh              
+              name: cloudinitdisk

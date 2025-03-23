@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Delete=false
+    argocd.argoproj.io/sync-wave: "20"
+  name: virt-usecase-appset
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/shrishs/ovirt.git
+        revision: HEAD
+        directories:
+          - path: vms
+          #- path: vmpool
+  template:
+    metadata:
+      labels:
+        type: hub
+      name: 'usecase-{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/shrishs/ovirt.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: 'https://kubernetes.default.svc'
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions: []
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: false
+...
+

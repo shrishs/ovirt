@@ -1,0 +1,88 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-demo-centos
+  namespace: usecase-image-pipeline
+  annotations:
+    description: VM example
+  labels:
+    app: demo
+    os.template.kubevirt.io/centos: 'true'
+spec:
+  running: true
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: small
+        vm.kubevirt.io/os: centos
+        vm.kubevirt.io/workload: server
+      labels:
+        kubevirt.io/domain: demo
+        kubevirt.io/size: small
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk          
+          interfaces:
+            - masquerade: {}
+              model: virtio
+              name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        features:
+          acpi: {}
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            bios: {}
+        machine:
+          type: q35
+        memory:
+          guest: 2Gi
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          containerDisk:
+            image: image-registry.openshift-image-registry.svc:5000/openshift-pipelines/centos9-vm-container
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              user: centos
+              password: centos
+              chpasswd: { expire: False }
+              packages:
+                - httpd
+                # CentOs already have qemu-guest-agent installed.
+                # https://docs.openshift.com/container-platform/4.16/virt/virtual_machines/creating_vms_custom/virt-installing-qemu-guest-agent.html
+                # - qemu-guest-agent
+              write_files:
+                - path: /usr/local/bin/setup-httpd.sh
+                  permissions: '0755'
+                  content: |
+                    #!/bin/bash
+                    echo "<html><body><h1>IP Address: $(hostname -f)</h1></body></html>" > /tmp/index.html
+                    sudo mv /tmp/index.html /var/www/html/index.html
+                    sudo chown -R apache:apache /var/www/html
+                    sudo restorecon -Rv /var/www/html                   
+                    sudo systemctl enable httpd
+                    sudo systemctl start httpd
+              runcmd:
+                - sudo /usr/local/bin/setup-httpd.sh
+                # - sudo systemctl enable qemu-guest-agent
+                # - sudo systemctl start qemu-guest-agent                
+
+          name: cloudinitdisk

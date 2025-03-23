@@ -1,0 +1,15 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: route-vmpool-demo-fedora
+  labels:
+    app.kubernetes.io/instance: bootstrap
+spec:
+  to:
+    kind: Service
+    name: service-vmpool-demo-fedora
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  port:
+    targetPort: 80

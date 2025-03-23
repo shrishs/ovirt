@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: build-and-upload-container-disk
+  namespace: usecase-image-pipeline
+  labels:
+    tekton.dev/pipeline: build-and-upload-container-disk
+spec:
+  params:
+    - name: registry
+      value: 'image-registry.openshift-image-registry.svc:5000'
+    - name: namespace
+      value: usecase-image-pipeline
+    - name: imageName
+      value: centos9-vm-container
+  pipelineRef:
+    name: build-and-upload-container-disk
+  taskRunTemplate:
+    serviceAccountName: pipeline
+  timeouts:
+    pipeline: 1h0m0s
+  workspaces:
+    - name: shared-workspace
+      persistentVolumeClaim:
+        claimName: pipeline-pvc  # Use a manually created PVC

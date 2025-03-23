@@ -1,0 +1,15 @@
+kind: Secret
+apiVersion: v1
+data:
+  password: xxxxxxxx
+  type: Z2l0
+  url: aHR0cHM6Ly9naXRodWIuY29tL3NocmlzaHMvb3ZpcnQuZ2l0Cg==
+  username: bm90LXVzZWQ=
+metadata:
+  annotations:
+    managed-by: argocd.argoproj.io
+  name: repo-hub-configuration-auth
+  namespace: openshift-gitops
+  labels:
+    argocd.argoproj.io/secret-type: repository  
+type: Opaque

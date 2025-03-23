@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: download-qcow2
+spec:
+  workspaces:
+  - name: source
+  params:
+    - name: manifest_dir
+      description: The directory in source that contains yaml manifests
+      type: string
+      default: "k8s"
+  steps:
+    - name: download
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+      workingDir: /workspace/source
+      script: |
+        #!/bin/sh
+        set -e
+        curl -LO https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2
+        mv CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2 centos9-vm.qcow2
+        ls -lh centos9-vm.qcow2
+        echo "Creating Dockerfile..."
+        cat <<EOF > /workspace/source/Dockerfile
+        FROM registry.access.redhat.com/ubi8/ubi:latest AS builder
+        ADD --chown=107:107 centos9-vm.qcow2 /disk/
+        RUN chmod 0440 /disk/*
+        FROM scratch
+        COPY --from=builder /disk/* /disk/
+        EOF
+        ls -lh /workspace/source/        

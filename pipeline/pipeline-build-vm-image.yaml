@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: build-and-upload-container-disk
+spec:
+  workspaces:
+    - name: shared-workspace
+  params:
+    - default: 'image-registry.openshift-image-registry.svc:5000'
+      description: 'Container registry (e.g., image-registry.openshift-image-registry.svc:5000)'
+      name: registry
+      type: string
+    - default: my-namespace
+      description: Namespace to push the image
+      name: namespace
+      type: string
+    - default: centos9-vm-container
+      description: Container image name
+      name: imageName
+      type: string
+  tasks:
+    - name: download-qcow2
+      taskRef:
+        name: download-qcow2
+      workspaces:
+      - name: source
+        workspace: shared-workspace
+
+    - name: create-docker-file
+      taskRef:
+        name: create-docker-file
+      runAfter:
+        - download-qcow2        
+      workspaces:
+      - name: source
+        workspace: shared-workspace           
+
+    - name: build-vm-image
+      taskRef:
+        resolver: cluster
+        params:
+        - name: name
+          value: buildah
+        - name: namespace
+          value: openshift-pipelines
+        - name: kind
+          value: task      
+        # kind: Task
+        # name: buildah
+        # namespace: openshift-pipelines
+      runAfter:
+        - create-docker-file
+      workspaces:
+      - name: source
+        workspace: shared-workspace           
+      params:
+        - name: IMAGE
+          value: "$(params.registry)/$(params.namespace)/$(params.imageName):latest"
+        - name: DOCKERFILE
+          value: "Dockerfile"                 
+
+            

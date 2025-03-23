@@ -1,0 +1,60 @@
+---
+
+- name: Test VMware Connection
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vmware_vars.yaml  
+  tasks:
+    - name: Get VMware VM details
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+        name: "{{ vm_name }}"
+        state: "poweredon"
+      delegate_to: localhost
+
+# - name: Create a VM in VMware
+#   hosts: localhost
+#   gather_facts: no
+#   tasks:
+#     # - name: Create a VM
+#     #   community.vmware.vmware_guest:
+#     #     hostname: "{{ vcenter_hostname }}"
+#     #     username: "{{ vcenter_username }}"
+#     #     password: "{{ vcenter_password }}"
+#     #     validate_certs: no
+#     #     datacenter: "{{ datacenter_name }}"
+#     #     cluster: "{{ cluster_name }}"
+#     #     name: "{{ vm_name }}"
+#     #     state: powered_on
+#     #     guest_id: "{{ guest_id }}"
+#     #     disk:
+#     #       - size_gb: 20
+#     #         type: thin
+#     #         datastore: "{{ datastore_name }}"
+#     #     hardware:
+#     #       memory_mb: 2048
+#     #       num_cpus: 2
+#     #     networks:
+#     #       - name: "{{ network_name }}"
+#     #         ip: "{{ vm_ip }}"
+#     #         netmask: "{{ vm_netmask }}"
+#     #         gateway: "{{ vm_gateway }}"
+#     #     wait_for_ip_address: yes
+#     #   delegate_to: localhost
+
+# - name: Power on the VM
+#   community.vmware.vmware_guest:
+#     hostname: "{{ vcenter_hostname | default('default_vcenter_hostname') }}"
+#     username: "{{ vcenter_username | default('default_vcenter_username') }}"
+#     password: "{{ vcenter_password | default('default_vcenter_password') }}"
+#     validate_certs: no
+#     datacenter: "{{ datacenter_name | default('default_datacenter_name') }}"
+#     name: "{{ vm_name | default('default_vm_name') }}"
+#     state: powered_on
+#   delegate_to: localhost
+
+      

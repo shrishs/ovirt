@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: create-docker-file
+spec:
+  workspaces:
+  - name: source
+  steps:
+    - name: download
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+      workingDir: /workspace/source
+      script: |
+        #!/bin/sh
+        set -e
+        echo "Creating Dockerfile..."
+        cat <<EOF > /workspace/source/Dockerfile
+        FROM registry.access.redhat.com/ubi8/ubi:latest AS builder
+        ADD --chown=107:107 centos9-vm.qcow2 /disk/
+        RUN chmod 0440 /disk/*
+        FROM scratch
+        COPY --from=builder /disk/* /disk/
+        EOF
+        ls -lh /workspace/source/        
